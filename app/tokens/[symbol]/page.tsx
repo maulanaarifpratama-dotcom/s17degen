@@ -46,36 +46,114 @@ function getNumbers(input: string) {
   return [...input.matchAll(/\d+(?:[.,]\d+)?/g)].map((match) => Number(match[0].replace(',', '.'))).filter(Number.isFinite);
 }
 
+type GajikapanStyle = 'savage' | 'mentor' | 'analytical' | 'encouraging';
+
+let lastGajikapanHeadline = '';
+
+const gajikapanHeadlines: Record<GajikapanStyle, string[]> = {
+  savage: [
+    'Your CV is doing unpaid labor hiding your actual value 💀',
+    'Your experience has value, but your wording is unemployed.',
+    'This CV has main-character effort with background-character proof.',
+  ],
+  mentor: [
+    'You have the raw material; now make the impact obvious.',
+    'Your work sounds useful — it just needs recruiter-friendly evidence.',
+    'The story is there. The proof needs a louder microphone.',
+  ],
+  analytical: [
+    'Your CV has activity signals, but weak outcome signals.',
+    'Recruiters are skimming for proof; your CV is giving them fog.',
+    'The gap is not effort. The gap is clarity plus measurable evidence.',
+  ],
+  encouraging: [
+    'You are closer than you think — the bullet just needs sharper proof.',
+    'This is fixable. Your CV needs receipts, not a personality transplant.',
+    'Your experience can land better if the value shows up faster.',
+  ],
+};
+
+const gajikapanQuickFixes: Record<GajikapanStyle, string[]> = {
+  savage: [
+    'Rewrite one bullet as result first, task second. Busy is not the same as valuable.',
+    'Delete one vague sentence and replace it with a number, outcome, or tool. No proof, no mercy.',
+  ],
+  mentor: [
+    'Use action + measurable result + who benefited, then keep the sentence calm and clear.',
+    'Pick your strongest task and turn it into a before/after improvement story.',
+  ],
+  analytical: [
+    'Add metric, scope, tool, and outcome so the recruiter can verify the signal quickly.',
+    'Convert responsibility language into evidence language: what changed, by how much, for whom.',
+  ],
+  encouraging: [
+    'Start with one bullet. Add one number or concrete result and you instantly look more credible.',
+    'Make the value obvious in five seconds; your future self deserves that upgrade.',
+  ],
+};
+
+function pickGajikapanHeadline(style: GajikapanStyle) {
+  const candidates = gajikapanHeadlines[style].filter((headline) => headline !== lastGajikapanHeadline);
+  const headline = pickRandom(candidates.length > 0 ? candidates : gajikapanHeadlines[style]);
+  lastGajikapanHeadline = headline;
+  return headline;
+}
+
+function getGajikapanContext(signal: string) {
+  if (/ads|marketing|campaign|meta|google|performance/i.test(signal)) {
+    return {
+      wrong: 'You mention marketing work, but not spend, CTR, leads, CAC, ROAS, or conversion impact.',
+      fix: 'Anchor the bullet around campaign goal + channel + metric movement.',
+      example: 'Optimized Meta Ads campaign, improved CTR by 18%, and reduced cost per lead by 22% across weekly tests.',
+    };
+  }
+
+  if (/engineer|developer|frontend|backend|fullstack|software|code|api|react|next/i.test(signal)) {
+    return {
+      wrong: 'You list tech tasks, but the business/user impact is still hiding behind the stack.',
+      fix: 'Connect the feature or bugfix to speed, reliability, users, revenue, or team efficiency.',
+      example: 'Built React dashboard module, reduced reporting time by 40%, and helped ops monitor issues faster.',
+    };
+  }
+
+  return {
+    wrong: 'You list activity, not impact. The effort is visible, but the value is blurry.',
+    fix: 'Rewrite one bullet as action + measurable result + who benefited.',
+    example: 'Improved monthly reporting flow, cut manual work by 30%, and helped the team decide faster.',
+  };
+}
+
 function outputFor(symbol: string, input: string) {
   const demoSignal = 'Admin intern, handled reports, made slides, helped team operations, used Excel, coordinated meetings.';
   const isDemo = symbol === 'GAJIKAPAN' && input.trim().length === 0;
   const signal = input.trim() || (symbol === 'GAJIKAPAN' ? demoSignal : 'No context provided yet.');
 
-  if (symbol === 'GAJIKAPAN') {
-    const mainLine = pickRandom([
-      'Your CV is hiding the good stuff 💀',
-      'Your experience has value, but your wording is unemployed.',
-      'Recruiters are skimming. Your CV is making them work overtime.',
-      'This CV has main-character effort with background-character proof.',
-    ]);
+    if (symbol === 'GAJIKAPAN') {
+    const style = pickRandom(['savage', 'mentor', 'analytical', 'encouraging']) as GajikapanStyle;
+    const context = getGajikapanContext(signal);
+    const mainLine = pickGajikapanHeadline(style);
     const wrong = pickRandom([
-      'You list activity, not impact. Busy is not a business result.',
-      'Your strongest proof is buried under generic admin-energy wording.',
-      'It reads like a job description, not evidence that you improved something.',
+      context.wrong,
       'The recruiter should not need detective skills to find your value.',
+      'It reads like a task list, not evidence that you improved something.',
+      'Your strongest proof exists somewhere, but the sentence does not point to it yet.',
     ]);
     const fix = pickRandom([
-      'Rewrite one bullet as: action + measurable result + who benefited.',
-      'Add one number, one outcome, and one tool/process you improved.',
-      'Replace vague verbs with proof: improved, reduced, shipped, coordinated, analyzed.',
-      'Lead with the result first. Make value obvious in five seconds.',
+      context.fix,
+      ...gajikapanQuickFixes[style],
+    ]);
+    const twist = pickRandom([
+      'Make the value impossible to miss.',
+      'Receipts beat vibes.',
+      'Proof is the new personality.',
+      'Busy is not the same as valuable.',
     ]);
 
     return [
       `MAIN LINE: ${mainLine}`,
       `WHAT'S WRONG: ${wrong}`,
-      `QUICK FIX: ${fix}`,
-      'EXAMPLE: Improved monthly reporting flow, cut manual work by 30%, and helped the team decide faster.',
+      `QUICK FIX: ${fix} ${twist}`,
+      `EXAMPLE: ${context.example}`,
       'ID: CV kamu bukan jelek; sinyal bagusnya ketutup. Bikin lebih terukur dan gampang dipercaya.',
       `INPUT SIGNAL: ${isDemo ? 'Demo mode used sample CV because you gave no input.' : signal.slice(0, 150)}`,
     ].join('\n');
