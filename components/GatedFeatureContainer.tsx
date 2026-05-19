@@ -46,7 +46,7 @@ export function GatedFeatureContainer({ requiredSdg, children }: { requiredSdg: 
             <p className="font-black text-slate-100">Token mint not configured yet</p>
             <p className="mt-2 text-slate-400">${token.symbol} is an experimental access token placeholder. Add the real Pump.fun mint to enable live access checks.</p>
             <p className="mt-3 text-xs font-semibold text-slate-500">Buy on Pump.fun ↗, then return here and Verify Access.</p>
-            <a href={token.pumpFunLink} target="_blank" rel="noopener noreferrer" onClick={rememberBuyIntent} className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-2 font-black text-slate-100 hover:border-cyan-400">
+            <a href={token.pumpFunUrl || token.pumpFunLink} target="_blank" rel="noopener noreferrer" onClick={rememberBuyIntent} className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-2 font-black text-slate-100 hover:border-cyan-400">
               Pump.fun placeholder <ExternalLink className="h-4 w-4" />
             </a>
           </div>
@@ -75,7 +75,7 @@ export function GatedFeatureContainer({ requiredSdg, children }: { requiredSdg: 
       <StateShell>
         <p className="font-black text-slate-100">You don’t hold enough ${token.symbol}. Go to Pump.fun to fix your life.</p>
         <p className="mt-3 text-xs font-semibold text-slate-500">Buy on Pump.fun ↗, then return here and Verify Access.</p>
-        <a href={token.pumpFunLink} target="_blank" rel="noopener noreferrer" onClick={rememberBuyIntent} className="mt-4 inline-flex items-center gap-2 rounded-full border border-fuchsia-400/40 px-4 py-2 font-black text-fuchsia-100 hover:bg-fuchsia-400/10">
+        <a href={token.pumpFunUrl || token.pumpFunLink} target="_blank" rel="noopener noreferrer" onClick={rememberBuyIntent} className="mt-4 inline-flex items-center gap-2 rounded-full border border-fuchsia-400/40 px-4 py-2 font-black text-fuchsia-100 hover:bg-fuchsia-400/10">
           Buy on Pump.fun <ExternalLink className="h-4 w-4" />
         </a>
       </StateShell>

@@ -15,6 +15,7 @@ export type SdegenToken = {
   acronym: string;
   mintAddress: string;
   pumpFunLink: string;
+  pumpFunUrl?: string;
   requiredBalance: number;
   accentColor: string;
   featureTitle: string;

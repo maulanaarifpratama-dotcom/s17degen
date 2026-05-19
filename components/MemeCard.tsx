@@ -112,7 +112,7 @@ export function MemeCard({
 
       <p className="relative mt-5 text-xs font-semibold text-slate-400">Buy on Pump.fun ↗, then return here and Verify Access.</p>
       <div className="relative mt-3 flex flex-col gap-3">
-        <a href={token.pumpFunLink} target="_blank" rel="noopener noreferrer" onClick={rememberBuyIntent} className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-slate-700 px-4 py-2 text-sm font-black text-slate-100 transition hover:border-fuchsia-400 hover:text-fuchsia-100">
+        <a href={token.pumpFunUrl || token.pumpFunLink} target="_blank" rel="noopener noreferrer" onClick={rememberBuyIntent} className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-slate-700 px-4 py-2 text-sm font-black text-slate-100 transition hover:border-fuchsia-400 hover:text-fuchsia-100">
           Buy on Pump.fun <ExternalLink className="h-4 w-4" />
         </a>
         <Link href={`/tokens/${token.symbol.toLowerCase()}`} className="inline-flex flex-1 items-center justify-center rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-slate-950 transition hover:bg-cyan-200">
