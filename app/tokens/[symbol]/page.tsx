@@ -41,6 +41,10 @@ function pickRandom(items: string[]) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+function getNumbers(input: string) {
+  return [...input.matchAll(/\d+(?:[.,]\d+)?/g)].map((match) => Number(match[0].replace(',', '.'))).filter(Number.isFinite);
+}
+
 function outputFor(symbol: string, input: string) {
   const demoSignal = 'Admin intern, handled reports, made slides, helped team operations, used Excel, coordinated meetings.';
   const isDemo = symbol === 'GAJIKAPAN' && input.trim().length === 0;
@@ -54,39 +58,86 @@ function outputFor(symbol: string, input: string) {
       'This CV has main-character effort with background-character proof.',
     ]);
     const wrong = pickRandom([
-      'It lists activity, but not impact. Busy is not the same as valuable.',
-      'The strongest part is probably there, but it is buried under generic wording.',
-      'It sounds like a job description, not evidence that you did something well.',
-      'The recruiter should not need detective skills to understand your contribution.',
+      'You list activity, not impact. Busy is not a business result.',
+      'Your strongest proof is buried under generic admin-energy wording.',
+      'It reads like a job description, not evidence that you improved something.',
+      'The recruiter should not need detective skills to find your value.',
     ]);
     const fix = pickRandom([
-      'Rewrite one bullet into: action + measurable result + who benefited.',
-      'Add one number, one outcome, and one concrete tool or process you improved.',
-      'Replace vague verbs with proof: improved, reduced, shipped, coordinated, analyzed, increased.',
-      'Start with the result, then explain the task. Make the value obvious in five seconds.',
+      'Rewrite one bullet as: action + measurable result + who benefited.',
+      'Add one number, one outcome, and one tool/process you improved.',
+      'Replace vague verbs with proof: improved, reduced, shipped, coordinated, analyzed.',
+      'Lead with the result first. Make value obvious in five seconds.',
     ]);
 
     return [
       `MAIN LINE: ${mainLine}`,
       `WHAT'S WRONG: ${wrong}`,
       `QUICK FIX: ${fix}`,
-      'EXAMPLE: Improved monthly reporting flow, reduced manual work by 30%, and helped the team make faster decisions.',
-      'ID: CV kamu bukan jelek. Tapi sinyal bagusnya ketutup. Bikin lebih jelas, lebih terukur, dan lebih gampang dipercaya.',
-      `INPUT SIGNAL: ${isDemo ? 'Demo mode used sample CV because you gave no input.' : signal.slice(0, 180)}`,
+      'EXAMPLE: Improved monthly reporting flow, cut manual work by 30%, and helped the team decide faster.',
+      'ID: CV kamu bukan jelek; sinyal bagusnya ketutup. Bikin lebih terukur dan gampang dipercaya.',
+      `INPUT SIGNAL: ${isDemo ? 'Demo mode used sample CV because you gave no input.' : signal.slice(0, 150)}`,
     ].join('\n');
   }
 
-  const hooks: Record<string, string> = {
-    NGIDEA: 'Pitch mode: define the user, the pain, the weird advantage, and the first tiny experiment. If nobody reacts, shrink the idea.',
-    BUMIPANAS: 'Carbon insight: pick one repeatable habit, connect it to local climate pressure, and make the next action boring enough to actually do.',
-    AKMIS: 'Survival plan: protect food, sleep, cash timing, and one next move. Dignity first. Chaos second.',
-  };
-  return `${hooks[symbol] || 'Monster read: convert the problem into one tiny action, one honest blocker, and one next step.'}\n\nInput signal: ${signal.slice(0, 180)}`;
+  if (symbol === 'NGIDEA') {
+    const idea = signal === 'No context provided yet.' ? 'a student-friendly local service idea' : signal.slice(0, 120);
+    return [
+      'HEADLINE: Your idea needs a sharper first user, not more vibes.',
+      `PROBLEM: People who face “${idea}” need a faster, clearer way to act.`,
+      'SOLUTION: Package it as one tiny offer with one obvious benefit.',
+      'NEXT STEP: Ask 5 target users one painful question, then build the smallest demo.',
+      `PITCH LINE: “We help [specific user] solve [pain] without [annoying old way].”`,
+      'ID: Ide bagus harus diperkecil dulu biar bisa dites cepat.',
+    ].join('\n');
+  }
+
+  if (symbol === 'BUMIPANAS') {
+    const numbers = getNumbers(signal);
+    const km = numbers[0] || 10;
+    const isFlight = /flight|fly|plane|pesawat/i.test(signal);
+    const isCar = /car|drive|mobil|motor/i.test(signal);
+    const factor = isFlight ? 0.18 : isCar ? 0.2 : 0.08;
+    const estimate = Math.max(0.5, km * factor);
+    return [
+      `HEADLINE: Estimated footprint: ~${estimate.toFixed(1)} kg CO₂e. Not cute, but fixable.`,
+      `BREAKDOWN: ${km} km × ${factor.toFixed(2)} kg CO₂e/km estimate.`,
+      `COMPARISON: About ${Math.max(1, Math.round(estimate / 0.4))} phone charges worth of emissions.`,
+      'SUGGESTION: Combine trips, switch one ride to public transit, or offset with a real local action.',
+      'NEXT STEP: Repeat this check before the next trip; guilt is useless, patterns are useful.',
+      'ID: Angkanya perkiraan, tapi cukup buat mulai ubah kebiasaan.',
+    ].join('\n');
+  }
+
+  if (symbol === 'AKMIS') {
+    const numbers = getNumbers(signal);
+    const money = numbers[0] || 250000;
+    const dailySpend = numbers[1] || 50000;
+    const days = Math.max(1, Math.floor(money / Math.max(dailySpend, 1)));
+    const risk = days <= 3 ? 'HIGH RISK — survival mode is screaming.' : days <= 7 ? 'MEDIUM RISK — manageable, but no silly checkout.' : 'LOWER RISK — still budget like a suspicious accountant.';
+    return [
+      `HEADLINE: You can survive about ${days} day(s) at this burn rate.`,
+      `MATH: ${money.toLocaleString()} cash ÷ ${dailySpend.toLocaleString()}/day spend.`,
+      `RISK: ${risk}`,
+      'CUT FIRST: Snacks, impulse delivery, and “small” purchases that quietly rob you.',
+      'NEXT STEP: Lock today’s food + transport budget before spending on anything else.',
+      'ID: Amankan makan, transport, dan tidur dulu. Gaya hidup nanti aja.',
+    ].join('\n');
+  }
+
+  return [
+    `BASIC MODE: ${symbol} can turn this issue into one practical next step.`,
+    `INSIGHT: You’re dealing with “${signal.slice(0, 90)}” → the real blocker is clarity.`,
+    'BREAKDOWN: Name the problem, choose one affected person, remove one avoidable friction.',
+    'NEXT STEP: Write one action you can do in 24 hours, then share it with one real person.',
+    'ID: Mode dasar dulu — ubah masalah jadi satu langkah kecil yang bisa dilakukan.',
+  ].join('\n');
 }
 
 function feedTextFor(symbol: string, result: string) {
-  if (symbol === 'GAJIKAPAN') return result.split('\n')[0]?.replace('MAIN LINE: ', '') || 'Your CV is hiding the good stuff 💀';
-  return result;
+  const firstLine = result.split('\n')[0] || result;
+  if (symbol === 'GAJIKAPAN') return firstLine.replace('MAIN LINE: ', '') || 'Your CV is hiding the good stuff 💀';
+  return firstLine.replace('HEADLINE: ', '').replace('BASIC MODE: ', '');
 }
 
 function parseGajikapanResult(result: string) {
