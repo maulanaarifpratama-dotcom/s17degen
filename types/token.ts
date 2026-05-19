@@ -1,0 +1,22 @@
+export type SdegenToken = {
+  id: string;
+  symbol: string;
+  name: string;
+  sdgNumber: number;
+  sdgName: string;
+  emoji: string;
+  imagePath: string;
+  category: 'SURVIVAL' | 'WORK & BUILD' | 'SOCIETY' | 'PLANET';
+  monsterName: string;
+  monsterConcept: string;
+  iconPrompt: string;
+  memeNarrative: string;
+  description: string;
+  acronym: string;
+  mintAddress: string;
+  pumpFunLink: string;
+  requiredBalance: number;
+  accentColor: string;
+  featureTitle: string;
+  featureDescription: string;
+};

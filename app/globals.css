@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #020617;
+  color: #f8fafc;
+}
+
+.wallet-adapter-button-trigger {
+  background: linear-gradient(135deg, #06b6d4, #a855f7) !important;
+  border-radius: 9999px !important;
+  font-weight: 800 !important;
+}
+
+@keyframes feed-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-feed-in {
+  animation: feed-in 280ms ease-out both;
+}
