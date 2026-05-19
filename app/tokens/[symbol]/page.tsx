@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -122,6 +122,12 @@ export default function TokenWorldPage() {
   const [result, setResult] = useState('');
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [hadBuyIntent, setHadBuyIntent] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+    setHadBuyIntent(window.localStorage.getItem('s17:last-buy-intent') === token.symbol);
+  }, [token]);
 
   if (!token) {
     return <main className="min-h-screen bg-slate-950 text-slate-50"><Navbar /><section className="mx-auto max-w-4xl px-4 py-20 text-center"><h1 className="text-4xl font-black">Token world not found</h1><p className="mt-4 text-slate-400">Dunia token tidak ditemukan.</p><Link href="/" className="mt-8 inline-flex rounded-full bg-slate-100 px-5 py-3 font-black text-slate-950">Back home</Link></section></main>;
@@ -183,7 +189,29 @@ export default function TokenWorldPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8"><div className="flex flex-col gap-3 rounded-[2rem] border border-slate-800 bg-slate-900/70 p-6 sm:flex-row"><a href={token.pumpFunUrl || token.pumpFunLink} target="_blank" rel="noopener noreferrer" onClick={() => window.localStorage.setItem('s17:last-buy-intent', token.symbol)} className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-fuchsia-400/40 px-5 py-3 font-black text-fuchsia-100 hover:bg-fuchsia-400/10">Buy on Pump.fun <ExternalLink className="h-4 w-4" /></a><button onClick={refresh} className="flex-1 rounded-full bg-slate-100 px-5 py-3 font-black text-slate-950 hover:bg-cyan-200">Verify Access</button></div></section>
+      <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="rounded-[2rem] border border-slate-800 bg-slate-900/70 p-6">
+          <div className="mb-6 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-5">
+            <p className="text-lg font-black text-slate-50">How it works</p>
+            <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm font-bold text-slate-300">
+              <li>Buy ${token.symbol} on Pump.fun</li>
+              <li>Come back here</li>
+              <li>Connect wallet to unlock</li>
+            </ol>
+            <p className="mt-4 text-sm leading-6 text-slate-500">ID: Beli ${token.symbol} di Pump.fun, kembali ke halaman ini, lalu hubungkan wallet untuk membuka akses.</p>
+          </div>
+
+          {hadBuyIntent ? <p className="mb-4 rounded-2xl border border-amber-300/20 bg-amber-300/10 p-3 text-sm font-bold text-amber-100">Welcome back 👋 Did you buy ${token.symbol}?</p> : null}
+          {connected ? <p className="mb-4 rounded-2xl border border-emerald-300/20 bg-emerald-300/10 p-3 text-sm font-bold text-emerald-100">Wallet connected ✅<br />Checking your token...</p> : null}
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <a href={token.pumpFunUrl || token.pumpFunLink} target="_blank" rel="noopener noreferrer" onClick={() => { window.localStorage.setItem('s17:last-buy-intent', token.symbol); setHadBuyIntent(true); }} className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-fuchsia-400/40 px-5 py-3 text-center font-black text-fuchsia-100 hover:bg-fuchsia-400/10">
+              <span>Buy on Pump.fun ↗<br /><span className="text-xs font-bold text-fuchsia-200/70">Then come back and unlock</span></span> <ExternalLink className="h-4 w-4" />
+            </a>
+            <button onClick={refresh} className="flex-1 rounded-full bg-slate-100 px-5 py-3 font-black text-slate-950 hover:bg-cyan-200">Verify Access</button>
+          </div>
+        </div>
+      </section>
       <Footer />
     </main>
   );
