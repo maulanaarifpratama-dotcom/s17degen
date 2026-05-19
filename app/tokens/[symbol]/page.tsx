@@ -168,7 +168,7 @@ export default function TokenWorldPage() {
   const params = useParams<{ symbol: string }>();
   const symbol = params.symbol?.toUpperCase();
   const token = useMemo(() => SDEGEN_TOKENS.find((item) => item.symbol === symbol), [symbol]);
-  const { connected, isUnlocked, loading, refresh } = useAccess();
+  const { connected, isUnlocked, loading, refresh, isDemoActive, isDev } = useAccess();
   const { addUserFeedItem } = useImpactFeed();
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
@@ -177,19 +177,44 @@ export default function TokenWorldPage() {
   const [hadBuyIntent, setHadBuyIntent] = useState(false);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+    useEffect(() => {
     if (!token) return;
     setHadBuyIntent(window.localStorage.getItem('s17:last-buy-intent') === token.symbol);
   }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+    const canonicalHref = `${window.location.origin}/tokens/${token.symbol.toLowerCase()}`;
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = canonicalHref;
+
+    let robots = document.querySelector<HTMLMetaElement>('meta[name="robots"][data-demo="true"]');
+    if (isDemoActive) {
+      if (!robots) {
+        robots = document.createElement('meta');
+        robots.name = 'robots';
+        robots.dataset.demo = 'true';
+        document.head.appendChild(robots);
+      }
+      robots.content = 'noindex, nofollow';
+    } else if (robots) {
+      robots.remove();
+    }
+  }, [isDemoActive, token]);
 
   if (!token) {
     return <main className="min-h-screen bg-slate-950 text-slate-50"><Navbar /><section className="mx-auto max-w-4xl px-4 py-20 text-center"><h1 className="text-4xl font-black">Token world not found</h1><p className="mt-4 text-slate-400">Dunia token tidak ditemukan.</p><Link href="/" className="mt-8 inline-flex rounded-full bg-slate-100 px-5 py-3 font-black text-slate-950">Back home</Link></section></main>;
   }
 
-  const unlocked = isUnlocked(token.sdgNumber);
+    const unlocked = isUnlocked(token.sdgNumber) || isDemoActive || isDev;
   const story = storyFor(token.symbol);
   const sdgNumber = token.sdgNumber.toString().padStart(2, '0');
-  const gajikapanResult = token.symbol === 'GAJIKAPAN' && result ? parseGajikapanResult(result) : null;
+    const gajikapanResult = token.symbol === 'GAJIKAPAN' && result ? parseGajikapanResult(result) : null;
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -250,8 +275,9 @@ export default function TokenWorldPage() {
 
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="rounded-[2rem] border p-6 shadow-2xl shadow-slate-950/60" style={{ borderColor: `${token.accentColor}77`, background: `linear-gradient(135deg, ${token.accentColor}22, #020617 75%)` }}>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">AI Tool</p><h2 className="mt-2 text-3xl font-black">{toolName(token.symbol)}</h2><p className="mt-2 text-slate-400">EN: Turn your chaos into a shareable action card.</p><p className="text-slate-500">ID: Ubah chaos kamu jadi kartu aksi yang bisa dibagikan.</p></div><Badge className={unlocked ? 'border-emerald-400/50 bg-emerald-400/10 text-emerald-200' : 'border-fuchsia-400/40 bg-fuchsia-400/10 text-fuchsia-100'}>{unlocked ? <Unlock className="mr-1 h-3 w-3" /> : <Lock className="mr-1 h-3 w-3" />}{loading ? 'Checking' : unlocked ? 'Unlocked' : 'Locked'}</Badge></div>
-          {!connected || !unlocked ? <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-950/70 p-5">{token.symbol === 'GAJIKAPAN' ? <p className="mb-3 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3 text-sm font-bold text-cyan-100">Already bought $GAJIKAPAN? Connect your wallet and verify access below.</p> : null}<p className="font-black text-slate-100">Connect wallet to unlock</p><p className="mt-2 text-sm text-slate-400">ID: Hubungkan wallet dan verifikasi kepemilikan token untuk membuka alat ini.</p><div className="mt-5 flex flex-col gap-3 sm:flex-row">{!connected ? <WalletMultiButton /> : null}<button onClick={refresh} className="rounded-full border border-slate-700 px-5 py-3 text-sm font-black text-slate-100 hover:border-cyan-400">Verify Access</button></div></div> : <form onSubmit={submit} className="mt-8 space-y-5"><textarea value={input} onChange={(event) => setInput(event.target.value)} className="min-h-36 w-full rounded-2xl border border-slate-700 bg-slate-950/80 p-4 text-slate-100 outline-none placeholder:text-slate-600 focus:border-cyan-300" placeholder={token.symbol === 'GAJIKAPAN' ? 'Paste your CV bullet points, LinkedIn summary, or messy work experience...' : `Tell ${token.monsterName} what is broken today... / Ceritakan chaos kamu hari ini...`} /><div className="flex flex-col gap-3 sm:flex-row"><button type="submit" disabled={isGenerating} className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-100 px-6 py-3 font-black text-slate-950 hover:bg-cyan-200 disabled:cursor-wait disabled:opacity-70"><Sparkles className="h-4 w-4" /> {isGenerating ? 'Roasting gently...' : token.symbol === 'GAJIKAPAN' ? 'Roast My CV' : 'Generate Card'}</button>{token.symbol === 'GAJIKAPAN' && result ? <button type="submit" disabled={isGenerating} className="rounded-full border border-slate-700 px-6 py-3 font-black text-slate-100 hover:border-cyan-400 disabled:cursor-wait disabled:opacity-70">Generate Again</button> : null}</div>{isGenerating ? <p className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-3 text-sm font-bold text-amber-100">Reading your career chaos... finding weak bullets... preparing a useful roast. / Lagi baca chaos karier kamu...</p> : null}</form>}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-black uppercase tracking-[0.3em] text-cyan-300">AI Tool</p><h2 className="mt-2 text-3xl font-black">{toolName(token.symbol)}</h2><p className="mt-2 text-slate-400">EN: Turn your chaos into a shareable action card.</p><p className="text-slate-500">ID: Ubah chaos kamu jadi kartu aksi yang bisa dibagikan.</p></div><Badge className={unlocked ? 'border-emerald-400/50 bg-emerald-400/10 text-emerald-200' : 'border-fuchsia-400/40 bg-fuchsia-400/10 text-fuchsia-100'}>{unlocked ? <Unlock className="mr-1 h-3 w-3" /> : <Lock className="mr-1 h-3 w-3" />}{loading ? 'Checking' : unlocked ? 'Unlocked' : 'Locked'}</Badge></div>
+          {isDemoActive ? <p className="mt-5 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3 text-sm font-bold text-cyan-100">Demo mode enabled — no token required<br />Mode demo aktif — tidak butuh token</p> : null}
+          {!unlocked ? <div className="mt-8 rounded-2xl border border-slate-800 bg-slate-950/70 p-5">{token.symbol === 'GAJIKAPAN' ? <p className="mb-3 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-3 text-sm font-bold text-cyan-100">Already bought $GAJIKAPAN? Connect your wallet and verify access below.</p> : null}<p className="font-black text-slate-100">Connect wallet to unlock</p><p className="mt-2 text-sm text-slate-400">ID: Hubungkan wallet dan verifikasi kepemilikan token untuk membuka alat ini.</p><div className="mt-5 flex flex-col gap-3 sm:flex-row">{!connected ? <WalletMultiButton /> : null}<button onClick={refresh} className="rounded-full border border-slate-700 px-5 py-3 text-sm font-black text-slate-100 hover:border-cyan-400">Verify Access</button></div></div> : <form onSubmit={submit} className="mt-8 space-y-5"><textarea value={input} onChange={(event) => setInput(event.target.value)} className="min-h-36 w-full rounded-2xl border border-slate-700 bg-slate-950/80 p-4 text-slate-100 outline-none placeholder:text-slate-600 focus:border-cyan-300" placeholder={token.symbol === 'GAJIKAPAN' ? 'Paste your CV bullet points, LinkedIn summary, or messy work experience...' : `Tell ${token.monsterName} what is broken today... / Ceritakan chaos kamu hari ini...`} /><div className="flex flex-col gap-3 sm:flex-row"><button type="submit" disabled={isGenerating} className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-100 px-6 py-3 font-black text-slate-950 hover:bg-cyan-200 disabled:cursor-wait disabled:opacity-70"><Sparkles className="h-4 w-4" /> {isGenerating ? 'Roasting gently...' : token.symbol === 'GAJIKAPAN' ? 'Roast My CV' : 'Generate Card'}</button>{token.symbol === 'GAJIKAPAN' && result ? <button type="submit" disabled={isGenerating} className="rounded-full border border-slate-700 px-6 py-3 font-black text-slate-100 hover:border-cyan-400 disabled:cursor-wait disabled:opacity-70">Generate Again</button> : null}</div>{isGenerating ? <p className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-3 text-sm font-bold text-amber-100">Reading your career chaos... finding weak bullets... preparing a useful roast. / Lagi baca chaos karier kamu...</p> : null}</form>}
           {result ? <div ref={shareCardRef} className={token.symbol === 'GAJIKAPAN' ? 'mt-8 overflow-hidden rounded-[1.75rem] border border-white/15 bg-slate-950 shadow-2xl shadow-slate-950/70' : 'mt-8 rounded-[1.5rem] border border-white/15 bg-slate-950 p-5'} style={token.symbol === 'GAJIKAPAN' ? undefined : { borderColor: `${token.accentColor}55`, boxShadow: `0 0 42px ${token.accentColor}22` }}><div className={token.symbol === 'GAJIKAPAN' ? 'p-5' : ''}><div className="flex items-center gap-4"><MonsterImage token={token} size={84} /><div><p className="text-sm font-black uppercase tracking-[0.24em] text-cyan-300">Shareable Result</p><p className="text-2xl font-black text-slate-50">${token.symbol}</p><p className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">SDG {sdgNumber}</p></div></div>{token.symbol === 'GAJIKAPAN' && gajikapanResult ? <div className="mt-5 rounded-[1.75rem] border bg-gradient-to-br from-slate-900 via-slate-950 to-slate-950 p-5 text-center" style={{ borderColor: `${token.accentColor}77`, boxShadow: `0 0 48px ${token.accentColor}33` }}><p className="text-xs font-black uppercase tracking-[0.28em]" style={{ color: token.accentColor }}>$GAJIKAPAN CV Verdict</p><h3 className="mx-auto mt-4 max-w-2xl text-3xl font-black leading-tight text-slate-50">{gajikapanResult.mainLine}</h3><div className="my-6 h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent" /><div className="grid gap-4 text-left md:grid-cols-2"><div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4"><p className="text-sm font-black uppercase tracking-[0.2em] text-rose-200">What’s wrong</p><p className="mt-3 leading-7 text-slate-200">{gajikapanResult.wrong}</p></div><div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4"><p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-200">Quick fix</p><p className="mt-3 leading-7 text-slate-200">{gajikapanResult.fix}</p></div></div><div className="mt-4 rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-left"><p className="text-sm font-black uppercase tracking-[0.2em] text-cyan-200">Better bullet</p><p className="mt-3 leading-7 text-slate-200">{gajikapanResult.example}</p></div><p className="mt-4 text-sm leading-6 text-slate-500">ID: {gajikapanResult.id}</p><p className="mt-4 text-xs font-bold text-slate-600">{gajikapanResult.inputSignal}</p><p className="mt-5 text-sm font-black text-amber-200">Another CV rescued 🫡</p></div> : <p className="mt-5 whitespace-pre-line rounded-2xl bg-slate-900/80 p-4 leading-7 text-slate-200">{result}</p>}<div className="mt-5 flex flex-col gap-3 sm:items-center sm:justify-between"><p className="text-sm font-black text-slate-400">S17 DEGEN by Impactory</p><p className="text-xs font-bold text-slate-600">s17degen.vercel.app</p>{token.symbol === 'GAJIKAPAN' ? <p data-export="hide" className="text-sm text-slate-500">Would you share this? Don’t worry, we won’t tell them it was you.</p> : null}<div data-export="hide" className="flex flex-col gap-3 sm:flex-row"><button onClick={copyResult} className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-700 px-4 py-2 text-sm font-black text-slate-100 hover:border-cyan-400"><Copy className="h-4 w-4" /> {copied ? 'Copied' : token.symbol === 'GAJIKAPAN' ? 'Copy Result' : 'Copy'}</button><button onClick={downloadCard} className="inline-flex items-center justify-center gap-2 rounded-full border border-cyan-400/40 px-4 py-2 text-sm font-black text-cyan-100 hover:bg-cyan-400/10"><Download className="h-4 w-4" /> Download Card 📸</button>{token.symbol === 'GAJIKAPAN' ? <button onClick={() => { const fakeEvent = { preventDefault() {} } as FormEvent<HTMLFormElement>; submit(fakeEvent); }} disabled={isGenerating} className="rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-slate-950 hover:bg-cyan-200 disabled:cursor-wait disabled:opacity-70">Generate Again 🔥</button> : null}</div></div></div></div> : null}
         </div>
       </section>

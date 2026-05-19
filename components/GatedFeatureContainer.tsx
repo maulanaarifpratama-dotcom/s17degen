@@ -18,7 +18,7 @@ function StateShell({ children }: { children: ReactNode }) {
 
 export function GatedFeatureContainer({ requiredSdg, children }: { requiredSdg: number; children: ReactNode }) {
   const token = getTokenBySdg(requiredSdg);
-  const { connected, loading, error, refresh, isUnlocked } = useAccess();
+  const { connected, loading, error, refresh, isUnlocked, isDemoActive, isDev } = useAccess();
 
   function rememberBuyIntent() {
     if (token) window.localStorage.setItem('s17:last-buy-intent', token.symbol);
@@ -28,7 +28,9 @@ export function GatedFeatureContainer({ requiredSdg, children }: { requiredSdg: 
     return <StateShell>Unknown SDG access rule.</StateShell>;
   }
 
-  if (!connected) {
+  const accessUnlocked = isUnlocked(requiredSdg) || isDemoActive || isDev;
+
+  if (!connected && !accessUnlocked) {
     return (
       <StateShell>
         <p className="mb-4 font-bold text-slate-100">Connect Wallet to Unlock This Feature</p>
@@ -37,7 +39,7 @@ export function GatedFeatureContainer({ requiredSdg, children }: { requiredSdg: 
     );
   }
 
-  if (isPlaceholderMint(token.mintAddress)) {
+  if (isPlaceholderMint(token.mintAddress) && !accessUnlocked) {
     return (
       <StateShell>
         <div className="flex items-start gap-3">
@@ -70,7 +72,7 @@ export function GatedFeatureContainer({ requiredSdg, children }: { requiredSdg: 
     );
   }
 
-  if (!isUnlocked(requiredSdg)) {
+  if (!accessUnlocked) {
     return (
       <StateShell>
         <p className="font-black text-slate-100">You don’t hold enough ${token.symbol}. Go to Pump.fun to fix your life.</p>
